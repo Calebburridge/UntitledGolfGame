@@ -10,6 +10,7 @@ interface GameControlsProps {
   totalStrokes: number;
   holeNumber: number;
   disabled: boolean;
+  customInventory?: Club[]; // Added dynamic inventory property array parameter
 }
 
 export const GameControls: React.FC<GameControlsProps> = ({
@@ -20,8 +21,11 @@ export const GameControls: React.FC<GameControlsProps> = ({
   totalStrokes,
   holeNumber,
   disabled,
+  customInventory, // Destructured prop
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const availableClubs: Club[] = customInventory || CLUBS;
 
   const handleClubPress = (club: Club) => {
     onSelectClub(club);
@@ -33,7 +37,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
       {/* Absolute Club Selection Dropup Menu List */}
       {isMenuOpen && !disabled && (
         <View style={styles.dropupMenu}>
-          {CLUBS.map((club) => (
+          {availableClubs.map((club) => (
             <TouchableOpacity
               key={club.id}
               style={[

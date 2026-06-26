@@ -16,7 +16,7 @@ interface DivotState {
 const TILE_SIZE = 20;
 const CANVAS_WIDTH = 400;
 const CANVAS_HEIGHT = 800;
-const GRAVITY = 0.06; // Tuned low gravity anchor for smooth notebook arc panning
+const GRAVITY = 0.06; // Low gravity constant maps beautifully to the pixel canvas coordinate scale
 
 export const useGameLoop = (startX: number, startY: number, mapData: TerrainType[][]) => {
   const [ball, setBall] = useState<BallState>({ x: startX, y: startY, z: 0, radius: 4 });
@@ -29,19 +29,19 @@ export const useGameLoop = (startX: number, startY: number, mapData: TerrainType
   const vzRef = useRef(0); // Vertical lift velocity vector
   const positionRef = useRef({ x: startX, y: startY, z: 0 });
 
-  const fireBall = useCallback((shot: { angle: number; power: number }) => {
+  const fireBall = useCallback((shot: { angle: number; power: number; loft: number }) => {
     // Drop a divot mark at the launch point
     setDivots((prev) => [...prev, { x: positionRef.current.x, y: positionRef.current.y }]);
 
-    // Adjusted to 0.33 to achieve 75% of the previous maximum driver range
-    const rawSpeed = shot.power * 0.33; 
+    // Adjusted from 0.38 to 0.19 to bring max driver range to 40% canvas height
+    const rawSpeed = shot.power * 0.19; 
 
     // Translate launch vectors into 3D space directions
     vxRef.current = Math.cos(shot.angle) * rawSpeed;
     vyRef.current = Math.sin(shot.angle) * rawSpeed;
     
-    // Balanced lift vector creates proportional altitude arcs per club range
-    vzRef.current = rawSpeed * 0.22; 
+    // Vertical lift vector scales directly with individual equipment loft configurations
+    vzRef.current = rawSpeed * shot.loft; 
     
     setIsMoving(true);
   }, []);
@@ -104,11 +104,11 @@ export const useGameLoop = (startX: number, startY: number, mapData: TerrainType
             // LARGE TREES: High solid canopy. Will block ball even if airborne!
             vx = -vx * 0.5;
             vy = -vy * 0.5;
-            vz = -0.3; // Smush downward velocity vector on collision
+            vz = -0.3; // Deflect down on hit
             nextX = curX + vx;
             nextY = curY + vy;
           } else if (!isAirborne) {
-            // SMALL TREES: Low brush. Airborne shots fly right over them! Ground rolls choke.
+            // SMALL TREES: Low brush. Ground rolls choke.
             vx *= 0.3;
             vy *= 0.3;
             const currentAngle = Math.atan2(vy, vx);
@@ -122,21 +122,20 @@ export const useGameLoop = (startX: number, startY: number, mapData: TerrainType
 
       // 6. Dynamic Friction & Landing Logic
       if (isAirborne) {
-        // AIRBORNE PHASE: Minor air friction drag (flies freely over hazards)
-        vx *= 0.996;
-        vy *= 0.996;
+        // AIRBORNE PHASE: Balanced air drag resistance to allow controlled deep drives
+        vx *= 0.994;
+        vy *= 0.994;
       } else {
         // GROUND PHASE: Check if ball just impacted from the sky or is rolling out
         if (curZ > 0) {
-          // BALL JUST LANDED: Process impact elastic bounce dampenings based on terrain stiffness
-          let bounceRetention = 0.4; // Fairway standard bounce kick
-          if (currentTerrain === 'GREEN') bounceRetention = 0.45;  // Firm hard greens bounce more
-          if (currentTerrain === 'ROUGH') bounceRetention = 0.15;  // Heavy grass swallows bounce
-          if (currentTerrain === 'BUNKER') bounceRetention = 0.02; // Soft sand kills bounce completely
+          // BALL JUST LANDED: Process bounce friction based on terrain stiffness
+          let bounceRetention = 0.4; 
+          if (currentTerrain === 'GREEN') bounceRetention = 0.45;  
+          if (currentTerrain === 'ROUGH') bounceRetention = 0.15;  
+          if (currentTerrain === 'BUNKER') bounceRetention = 0.02; 
 
-          vz = -vzRef.current * bounceRetention; // Invert vertical vector upwards
+          vz = -vzRef.current * bounceRetention; 
           
-          // If the upward rebound velocity is tiny, force the ball to settle down into a flat roll
           if (vz < 0.4) {
             vz = 0;
             nextZ = 0;
@@ -144,11 +143,11 @@ export const useGameLoop = (startX: number, startY: number, mapData: TerrainType
         }
 
         // Apply rolling ground friction coefficients
-        let groundFriction = 0.965; // Fairway baseline rollout speed depletion
-        if (currentTerrain === 'GREEN') groundFriction = 0.982;  // Slick putting rollout
+        let groundFriction = 0.965; 
+        if (currentTerrain === 'GREEN') groundFriction = 0.982;  
         if (currentTerrain === 'FRINGE') groundFriction = 0.94;
-        if (currentTerrain === 'ROUGH') groundFriction = 0.84;   // Heavy rollout choking
-        if (currentTerrain === 'BUNKER') groundFriction = 0.55;  // Instant sand trap braking
+        if (currentTerrain === 'ROUGH') groundFriction = 0.84;   
+        if (currentTerrain === 'BUNKER') groundFriction = 0.55;  
         if (currentTerrain === 'TEE') groundFriction = 0.965;
 
         vx *= groundFriction;

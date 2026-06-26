@@ -101,11 +101,10 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
     setTotalStrokes((prev) => prev + 1);
 
     const finalAngle = pendingShot.angle + angleErrorOffset;
-    
-    // Clean, direct velocity translation scaling:
     const adjustedPower = pendingShot.power * currentClub.launchVelocity;
 
-    fireBall({ angle: finalAngle, power: adjustedPower });
+    // Pass the dedicated club loft setting downstream to control arc dimensions natively
+    fireBall({ angle: finalAngle, power: adjustedPower, loft: currentClub.loft });
     setPendingShot(null);
   };
 

@@ -40,7 +40,7 @@ export default function HomeScreen() {
         </ThemedView>
 
         <ThemedText type="code" style={styles.code}>
-          get started
+          So this is just a web app, that can also run on iOS and Android. Which I think is insane. 
         </ThemedText>
 
         <ThemedView type="backgroundElement" style={styles.stepContainer}>

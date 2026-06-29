@@ -15,9 +15,6 @@ export const TerrainGrid: React.FC<TerrainGridProps> = ({ mapData }) => {
 
     mapData.forEach((row, rowIndex) => {
       row.forEach((tileType, colIndex) => {
-        // Skip default FAIRWAY tiles to let the graph paper show through perfectly
-        if (tileType === 'FAIRWAY') return;
-
         const tileStyles = [
           styles.tile,
           {
@@ -53,37 +50,41 @@ const styles = StyleSheet.create({
     width: TILE_SIZE,
     height: TILE_SIZE,
   },
-  // Muted architectural wash tones that match the paper aesthetic
+  // Muted, hand-drawn paper tones for each terrain type
   TEE: {
-    backgroundColor: '#eae3d2',
+    backgroundColor: '#b7d7a8',
     borderWidth: 1,
-    borderColor: '#cccccc',
+    borderColor: '#8fb67a',
     borderStyle: 'dashed',
   },
   ROUGH: {
-    backgroundColor: '#dbd5c5', // Darker graphite-smudged paper tone
+    backgroundColor: '#f4efd9',
+    borderWidth: 1,
+    borderColor: '#e3d7b5',
   },
   BUNKER: {
-    backgroundColor: '#f1ebd9', // Pale sand ink wash
+    backgroundColor: '#f0ddbb',
     borderWidth: 1,
-    borderColor: '#dcd1b3',
+    borderColor: '#d8c59a',
   },
   FRINGE: {
-    backgroundColor: '#e6ebd5', // Very pale apron green
+    backgroundColor: '#cfe3b8',
+    borderWidth: 1,
+    borderColor: '#b4cc95',
   },
   GREEN: {
-    backgroundColor: '#daebd7', // Sharp crisp green ink ring target
+    backgroundColor: '#dce9cf',
     borderWidth: 1,
-    borderColor: '#b2cbb0',
+    borderColor: '#c0d1b0',
   },
   // Obstacle background bases (treated like rough underneath the branches)
   TREE_S: {
-    backgroundColor: '#dbd5c5',
+    backgroundColor: '#a97b53',
     justifyContent: 'center',
     alignItems: 'center',
   },
   TREE_B: {
-    backgroundColor: '#dbd5c5',
+    backgroundColor: '#a97b53',
     justifyContent: 'center',
     alignItems: 'center',
   },

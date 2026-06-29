@@ -1,9 +1,9 @@
-import { HoleDefinition, parseMapLayout } from '../terrain';
+import { findTilePosition, HoleDefinition, parseMapLayout } from '../terrain';
 
 const HOLE_1_LAYOUT = [
   "RRRRRRRRRRRRRRRRRRRR",
   "RRRRRRRRRRRGGGGGRRRR",
-  "RRRRRRRRRRGGGGGGRRRR",
+  "RRRRRRRRRRGGGHGGRRRR",
   "RRRRRRRRRRggGGggrRRR",
   "RRRRRRRRRRRggggrRRRR",
   "RRRRRRRRRRRFFFFRRRRR",
@@ -36,20 +36,23 @@ const HOLE_1_LAYOUT = [
   "RRRRRRRRRRRFFFFFRRRR",
   "RRRRRRRRRRRFFFFFRRRR",
   "RRRRRRRRRRRTTTTRRRRR",
-  "RRRRRRRRRRRTTTTRRRRR",
+  "RRRRRRRRRRRTYTTRRRRR",
   "RRRRRRRRRRRRRRRRRRRR",
   "RRRRRRRRRRRRRRRRRRRR",
   "RRRRRRRRRRRRRRRRRRRR",
   "RRRRRRRRRRRRRRRRRRRR"
 ];
 
+const teePosition = findTilePosition(HOLE_1_LAYOUT, 'Y');
+const holePosition = findTilePosition(HOLE_1_LAYOUT, 'H');
+
 // Package map layout data completely alongside its setup coordinates
 export const hole1Definition: HoleDefinition = {
   holeNumber: 1,
   par: 4,
-  ballStartX: 230, // Centered flush inside the TEE tile block
-  ballStartY: 730,
-  holeX: 270,      // Centered flush inside the GREEN cup tile block
-  holeY: 50,
+  ballStartX: teePosition?.x ?? 230,
+  ballStartY: teePosition?.y ?? 730,
+  holeX: holePosition?.x ?? 270,
+  holeY: holePosition?.y ?? 50,
   mapData: parseMapLayout(HOLE_1_LAYOUT),
 };

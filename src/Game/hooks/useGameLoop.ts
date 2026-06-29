@@ -100,22 +100,37 @@ export const useGameLoop = (startX: number, startY: number, mapData: TerrainType
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance < 12) {
+          const impactAngle = Math.atan2(dy, dx);
+          const currentSpeed = Math.sqrt(vx * vx + vy * vy);
+
           if (currentTerrain === 'TREE_B') {
-            // LARGE TREES: High solid canopy. Will block ball even if airborne!
-            vx = -vx * 0.5;
-            vy = -vy * 0.5;
-            vz = -0.3; // Deflect down on hit
-            nextX = curX + vx;
-            nextY = curY + vy;
+            // LARGE TREES: Bounce outward from the tree instead of lingering inside the cell.
+            const normalX = dx / Math.max(distance, 1);
+            const normalY = dy / Math.max(distance, 1);
+            const dot = vx * normalX + vy * normalY;
+            const bounceSpeed = Math.max(0.8, currentSpeed * 0.75);
+
+            if (dot < 0) {
+              vx = vx - 2 * dot * normalX;
+              vy = vy - 2 * dot * normalY;
+            } else {
+              vx = -normalX * bounceSpeed;
+              vy = -normalY * bounceSpeed;
+            }
+
+            const bounceScale = Math.max(1, bounceSpeed / Math.max(currentSpeed, 1));
+            vx *= bounceScale;
+            vy *= bounceScale;
+            vz = -0.2;
+            nextX = treeCenterX + normalX * 8;
+            nextY = treeCenterY + normalY * 8;
           } else if (!isAirborne) {
-            // SMALL TREES: Low brush. Ground rolls choke.
-            vx *= 0.3;
-            vy *= 0.3;
+            // SMALL TREES: Slow down a lot and nudge the direction slightly.
+            const deflection = (Math.random() - 0.5) * 0.25;
             const currentAngle = Math.atan2(vy, vx);
-            const deflection = (Math.random() - 0.5) * 0.4;
-            const speed = Math.sqrt(vx * vx + vy * vy);
-            vx = Math.cos(currentAngle + deflection) * speed;
-            vy = Math.sin(currentAngle + deflection) * speed;
+            const reducedSpeed = Math.max(0.2, currentSpeed * 0.25);
+            vx = Math.cos(currentAngle + deflection) * reducedSpeed;
+            vy = Math.sin(currentAngle + deflection) * reducedSpeed;
           }
         }
       }
@@ -157,9 +172,17 @@ export const useGameLoop = (startX: number, startY: number, mapData: TerrainType
       // 7. Absolute Halt Dead-Stop Checks
       const rollingSpeed = Math.sqrt(vx * vx + vy * vy);
       if (rollingSpeed < 0.15 && nextZ === 0) {
+        const snappedX = Math.round((nextX - TILE_SIZE / 2) / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
+        const snappedY = Math.round((nextY - TILE_SIZE / 2) / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
+
+        const clampedX = Math.max(TILE_SIZE / 2, Math.min(CANVAS_WIDTH - TILE_SIZE / 2, snappedX));
+        const clampedY = Math.max(TILE_SIZE / 2, Math.min(CANVAS_HEIGHT - TILE_SIZE / 2, snappedY));
+
         vx = 0;
         vy = 0;
         vz = 0;
+        nextX = clampedX;
+        nextY = clampedY;
         setIsMoving(false);
       }
 

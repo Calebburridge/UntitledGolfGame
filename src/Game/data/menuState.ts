@@ -2,6 +2,7 @@ export type GameScreenState =
   | 'START_MENU' 
   | 'SAVE_SLOTS' 
   | 'MAIN_GAME_MENU' 
+  | 'COURSE_SELECT' 
   | 'CLUB_BAG' 
   | 'IN_GAME';
 
@@ -14,4 +15,5 @@ export interface SaveSlotData {
   unlocks: string[];
   cash: number;                        // Earned currency for shop upgrades
   clubLevels: Record<string, number>;  // e.g., { driver: 1, mid_iron: 2 }
+  completedCourses?: string[];
 }

@@ -1,3 +1,4 @@
+import { CourseSelectScreen } from '@/game/screens/CourseSelectScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -11,17 +12,46 @@ import { SaveSlotsScreen } from '../game/screens/SaveSlotsScreen';
 import { StartScreen } from '../game/screens/StartScreen';
 
 const STORAGE_KEY = '@untitled_golf_saves';
+const DEFAULT_UNLOCKS = ['Shady Sands Municipal Golf'];
+
+const createDefaultSave = (id: number): SaveSlotData => ({
+  id,
+  name: null,
+  accuracy: 0,
+  handicap: 'Reviewing',
+  bestStrokes: 0,
+  unlocks: DEFAULT_UNLOCKS,
+  cash: 500,
+  clubLevels: {},
+  completedCourses: [],
+});
+
+const normalizeSaveSlot = (slot: Partial<SaveSlotData> & { id: number }): SaveSlotData => {
+  const unlocks = Array.isArray(slot.unlocks) ? slot.unlocks.filter(Boolean) : [];
+  const normalizedUnlocks = unlocks.includes(DEFAULT_UNLOCKS[0])
+    ? unlocks
+    : [...unlocks, ...DEFAULT_UNLOCKS.filter((course) => !unlocks.includes(course))];
+
+  return {
+    ...createDefaultSave(slot.id),
+    ...slot,
+    name: slot.name ?? null,
+    unlocks: normalizedUnlocks,
+    completedCourses: slot.completedCourses ?? [],
+    clubLevels: slot.clubLevels ?? {},
+    cash: slot.cash ?? 500,
+    accuracy: slot.accuracy ?? 0,
+    handicap: slot.handicap ?? 'Reviewing',
+    bestStrokes: slot.bestStrokes ?? 0,
+  };
+};
 
 export default function App() {
   const scaleRef = useRef<number>(1);
   const [screenState, setScreenState] = useState<GameScreenState>('START_MENU');
   const [hasLoaded, setHasLoaded] = useState(false);
-  
-  const [saves, setSaves] = useState<SaveSlotData[]>([
-    { id: 1, name: null, accuracy: 0, handicap: 'Reviewing', bestStrokes: 0, unlocks: [], cash: 500, clubLevels: {} },
-    { id: 2, name: null, accuracy: 0, handicap: 'Reviewing', bestStrokes: 0, unlocks: [], cash: 500, clubLevels: {} },
-    { id: 3, name: null, accuracy: 0, handicap: 'Reviewing', bestStrokes: 0, unlocks: [], cash: 500, clubLevels: {} },
-  ]);
+
+  const [saves, setSaves] = useState<SaveSlotData[]>([1, 2, 3].map(createDefaultSave));
   const [activeSaveId, setActiveSaveId] = useState<number | null>(null);
 
   const activeSave = saves.find(s => s.id === activeSaveId);
@@ -31,7 +61,11 @@ export default function App() {
       try {
         const rawData = await AsyncStorage.getItem(STORAGE_KEY);
         if (rawData !== null) {
-          setSaves(JSON.parse(rawData));
+          const parsed = JSON.parse(rawData);
+          const normalizedSaves = Array.isArray(parsed)
+            ? parsed.map((slot: Partial<SaveSlotData> & { id: number }) => normalizeSaveSlot(slot))
+            : [1, 2, 3].map(createDefaultSave);
+          setSaves(normalizedSaves);
         }
       } catch (error) {
         console.error('Failed to load save states:', error);
@@ -66,6 +100,37 @@ export default function App() {
   const handleRenameSaveSlot = (slotId: number, nameString: string) => {
     setSaves((prev) =>
       prev.map((s) => (s.id === slotId ? { ...s, name: nameString } : s))
+    );
+  };
+
+  const handleDeleteSaveSlot = (slotId: number) => {
+    setSaves((prev) => prev.map((slot) => (slot.id === slotId ? createDefaultSave(slotId) : slot)));
+    if (activeSaveId === slotId) {
+      setActiveSaveId(null);
+    }
+  };
+
+  const handleCourseComplete = (courseName: string, totalStrokes: number, totalPar: number) => {
+    if (activeSaveId === null) return;
+
+    setSaves((prev) =>
+      prev.map((slot) => {
+        if (slot.id !== activeSaveId) return slot;
+
+        const completedCourses = slot.completedCourses ?? [];
+        const nextCourseUnlock = courseName === 'Shady Sands Municipal Golf' ? 'Free Flowing Golf Course' : null;
+        const unlocks = Array.isArray(slot.unlocks) ? slot.unlocks.filter(Boolean) : [];
+        const updatedUnlocks = nextCourseUnlock && !unlocks.includes(nextCourseUnlock)
+          ? [...unlocks, nextCourseUnlock]
+          : unlocks;
+
+        return {
+          ...slot,
+          completedCourses: completedCourses.includes(courseName) ? completedCourses : [...completedCourses, courseName],
+          unlocks: updatedUnlocks,
+          bestStrokes: slot.bestStrokes === 0 || totalStrokes < slot.bestStrokes ? totalStrokes : slot.bestStrokes,
+        };
+      })
     );
   };
 
@@ -116,9 +181,13 @@ export default function App() {
               saveSlots={saves}
               onSelectSave={handleSelectSaveSlot}
               onRenameSave={handleRenameSaveSlot}
+              onDeleteSave={handleDeleteSaveSlot}
             />
           )}
           {screenState === 'MAIN_GAME_MENU' && <MainMenuScreen onNavigate={setScreenState} />}
+          {screenState === 'COURSE_SELECT' && (
+            <CourseSelectScreen onNavigate={setScreenState} activeSave={activeSave} />
+          )}
           {screenState === 'CLUB_BAG' && activeSave && (
             <ClubBagScreen
               onNavigate={setScreenState}
@@ -133,7 +202,13 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <GameplayScreen activeProfile={activeSave} onPayout={() => {}} onQuit={() => setScreenState('MAIN_GAME_MENU')} />
+      <GameplayScreen
+        activeProfile={activeSave}
+        onPayout={() => {}}
+        onQuit={() => setScreenState('MAIN_GAME_MENU')}
+        onCourseComplete={handleCourseComplete}
+        courseName="Shady Sands Municipal Golf"
+      />
     </View>
   );
 }

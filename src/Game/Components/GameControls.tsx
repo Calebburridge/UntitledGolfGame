@@ -11,6 +11,7 @@ interface GameControlsProps {
   holeNumber: number;
   disabled: boolean;
   customInventory?: Club[]; // Added dynamic inventory property array parameter
+  onExitCourse?: () => void;
 }
 
 export const GameControls: React.FC<GameControlsProps> = ({
@@ -21,7 +22,8 @@ export const GameControls: React.FC<GameControlsProps> = ({
   totalStrokes,
   holeNumber,
   disabled,
-  customInventory, // Destructured prop
+  customInventory,
+  onExitCourse,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -59,9 +61,20 @@ export const GameControls: React.FC<GameControlsProps> = ({
 
       {/* Main Scorecard Row Segment */}
       <View style={styles.scorecardSection}>
-        <Text style={styles.holeText}>Hole {holeNumber}</Text>
-        <Text style={styles.strokeText}>Strokes: {strokes} / {par}</Text>
-        <Text style={styles.totalText}>Total: {totalStrokes}</Text>
+        <View style={styles.scoreTextRow}>
+          <Text style={styles.holeText}>Hole {holeNumber}</Text>
+          <Text style={styles.strokeText}>Strokes: {strokes} / {par}</Text>
+          <View style={styles.totalBlock}>
+            <Text style={styles.totalText}>Total: {totalStrokes}</Text>
+            <TouchableOpacity
+              disabled={disabled}
+              onPress={onExitCourse}
+              style={[styles.exitButton, disabled && styles.disabledButton]}
+            >
+              <Text style={styles.exitButtonText}>Exit</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       {/* Toggle Button Column */}
@@ -94,13 +107,22 @@ const styles = StyleSheet.create({
   },
   scorecardSection: {
     flex: 1,
-    flexDirection: 'row',       // Arranges children horizontally instead of vertically
-    justifyContent: 'space-between', // Spreads elements evenly from left to right
+    paddingRight: 20,
+  },
+  scoreTextRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingRight: 20,           // Leaves clean breathing room before the club button
+    flex: 1,
+    gap: 10,
+  },
+  totalBlock: {
+    alignItems: 'flex-end',
+    gap: 4,
   },
   buttonSection: {
     justifyContent: 'center',
+    alignItems: 'flex-end',
   },
   holeText: {
     fontSize: 13,
@@ -122,6 +144,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  exitButton: {
+    backgroundColor: '#f4f1ea',
+    borderWidth: 1,
+    borderColor: '#333333',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    alignItems: 'center',
+    minWidth: 56,
+  },
+  exitButtonText: {
+    fontSize: 9,
+    color: '#333333',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   clubButton: {
     backgroundColor: '#ffffff',

@@ -20,6 +20,7 @@ const GRAVITY = 0.06; // Low gravity constant maps beautifully to the pixel canv
 
 export const useGameLoop = (startX: number, startY: number, mapData: TerrainType[][]) => {
   const [ball, setBall] = useState<BallState>({ x: startX, y: startY, z: 0, radius: 4 });
+  const [ballSpeed, setBallSpeed] = useState(0);
   const [divots, setDivots] = useState<DivotState[]>([]);
   const [isMoving, setIsMoving] = useState(false);
 
@@ -28,6 +29,17 @@ export const useGameLoop = (startX: number, startY: number, mapData: TerrainType
   const vyRef = useRef(0);
   const vzRef = useRef(0); // Vertical lift velocity vector
   const positionRef = useRef({ x: startX, y: startY, z: 0 });
+
+  useEffect(() => {
+    setBall({ x: startX, y: startY, z: 0, radius: 4 });
+    setBallSpeed(0);
+    setDivots([]);
+    setIsMoving(false);
+    vxRef.current = 0;
+    vyRef.current = 0;
+    vzRef.current = 0;
+    positionRef.current = { x: startX, y: startY, z: 0 };
+  }, [startX, startY, mapData]);
 
   const fireBall = useCallback((shot: { angle: number; power: number; loft: number }) => {
     // Drop a divot mark at the launch point
@@ -171,6 +183,8 @@ export const useGameLoop = (startX: number, startY: number, mapData: TerrainType
 
       // 7. Absolute Halt Dead-Stop Checks
       const rollingSpeed = Math.sqrt(vx * vx + vy * vy);
+      setBallSpeed(rollingSpeed);
+
       if (rollingSpeed < 0.15 && nextZ === 0) {
         const snappedX = Math.round((nextX - TILE_SIZE / 2) / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
         const snappedY = Math.round((nextY - TILE_SIZE / 2) / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
@@ -203,5 +217,5 @@ export const useGameLoop = (startX: number, startY: number, mapData: TerrainType
     return () => cancelAnimationFrame(animationFrameId);
   }, [isMoving, mapData]);
 
-  return { ball, divots, isMoving, fireBall };
+  return { ball, ballSpeed, divots, isMoving, fireBall };
 };

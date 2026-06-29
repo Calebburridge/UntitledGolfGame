@@ -11,7 +11,7 @@ export const MainMenuScreen: React.FC<MainMenuScreenProps> = ({ onNavigate }) =>
     <View style={styles.menuContainer}>
       <Text style={styles.mainTitleSmall}>Untitled Golf Game</Text>
       
-      <TouchableOpacity style={styles.menuButton} onPress={() => onNavigate('IN_GAME')}>
+      <TouchableOpacity style={styles.menuButton} onPress={() => onNavigate('COURSE_SELECT')}>
         <Text style={styles.buttonText}>Play Course</Text>
       </TouchableOpacity>
 

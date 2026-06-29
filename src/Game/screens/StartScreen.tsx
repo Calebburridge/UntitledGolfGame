@@ -9,7 +9,7 @@ interface StartScreenProps {
 export const StartScreen: React.FC<StartScreenProps> = ({ onNavigate }) => {
   return (
     <View style={styles.menuContainer}>
-      <Text style={styles.developerText}>Developer: Not Too Terrible Studios</Text>
+      <Text style={styles.developerText}>PaperBack Studios Presents:</Text>
       <Text style={styles.mainTitle}>Untitled Golf Game</Text>
       
       <TouchableOpacity style={styles.menuButton} onPress={() => onNavigate('SAVE_SLOTS')}>

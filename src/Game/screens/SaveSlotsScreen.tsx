@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { GameScreenState, SaveSlotData } from '../data/menuState';
 
 interface SaveSlotsScreenProps {
@@ -7,6 +7,7 @@ interface SaveSlotsScreenProps {
   saveSlots: SaveSlotData[];
   onSelectSave: (slotId: number) => void;
   onRenameSave: (slotId: number, name: string) => void;
+  onDeleteSave: (slotId: number) => void;
 }
 
 export const SaveSlotsScreen: React.FC<SaveSlotsScreenProps> = ({
@@ -14,6 +15,7 @@ export const SaveSlotsScreen: React.FC<SaveSlotsScreenProps> = ({
   saveSlots,
   onSelectSave,
   onRenameSave,
+  onDeleteSave,
 }) => {
   const [namingSlot, setNamingSlot] = useState<number | null>(null);
   const [tempName, setTempName] = useState('');
@@ -33,6 +35,32 @@ export const SaveSlotsScreen: React.FC<SaveSlotsScreenProps> = ({
       setNamingSlot(null);
       onSelectSave(slotId);
     }
+  };
+
+  const confirmDelete = (slot: SaveSlotData) => {
+    const message = `Delete ${slot.name ?? `slot ${slot.id}`}?`;
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      const shouldDelete = window.confirm(message);
+      if (shouldDelete) {
+        onDeleteSave(slot.id);
+      }
+      return;
+    }
+
+    Alert.alert(
+      'Delete profile?',
+      message,
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes',
+          style: 'destructive',
+          onPress: () => onDeleteSave(slot.id),
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
@@ -55,17 +83,30 @@ export const SaveSlotsScreen: React.FC<SaveSlotsScreenProps> = ({
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity style={styles.slotClickArea} onPress={() => handleSaveClick(slot)}>
-              {slot.name === null ? (
-                <Text style={styles.emptySlotText}>[ Slot {slot.id} - Empty ]</Text>
-              ) : (
-                <View style={styles.saveStatsColumn}>
-                  <Text style={styles.profileName}>{slot.name}</Text>
-                  <Text style={styles.statLabel}>Handicap: {slot.handicap}</Text>
-                  <Text style={styles.statLabel}>Avg Accuracy: {slot.accuracy}%</Text>
-                </View>
+            <>
+              <TouchableOpacity style={styles.slotClickArea} onPress={() => handleSaveClick(slot)}>
+                {slot.name === null ? (
+                  <Text style={styles.emptySlotText}>[ Slot {slot.id} - Empty ]</Text>
+                ) : (
+                  <View style={styles.saveStatsColumn}>
+                    <Text style={styles.profileName}>{slot.name}</Text>
+                    <Text style={styles.statLabel}>Handicap: {slot.handicap}</Text>
+                    <Text style={styles.statLabel}>Avg Accuracy: {slot.accuracy}%</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              {slot.name !== null && (
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => confirmDelete(slot)}
+                  hitSlop={8}
+                  activeOpacity={0.75}
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.deleteButtonText}>🗑</Text>
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
+            </>
           )}
         </View>
       ))}
@@ -121,11 +162,30 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginBottom: 12,
     overflow: 'hidden',
+    position: 'relative',
   },
   slotClickArea: {
     flex: 1,
     paddingHorizontal: 16,
     justifyContent: 'center',
+    height: '100%',
+    paddingRight: 70,
+  },
+  deleteButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 54,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5e6e6',
+    borderLeftWidth: 1,
+    borderLeftColor: '#d9b3b3',
+    zIndex: 2,
+  },
+  deleteButtonText: {
+    fontSize: 18,
   },
   emptySlotText: {
     fontSize: 12,

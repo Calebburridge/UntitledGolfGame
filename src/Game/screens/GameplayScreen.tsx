@@ -11,7 +11,7 @@ import { TimingMinigame } from '../components/TimingMinigame';
 import { TrajectoryLine } from '../components/TrajectoryLine';
 import { Club, getAllClubsForProfile } from '../data/clubs';
 import { SaveSlotData } from '../data/menuState';
-import { hole1Definition } from '../data/ShadySandsMunicipalGolf/hole1';
+import { hole1Definition } from '../data/ShadySandsMunicipalGolf/SSHole1';
 import { useAimAndPower } from '../hooks/useAimAndPower';
 import { useGameLoop } from '../hooks/useGameLoop';
 

@@ -3,7 +3,7 @@ import { findTilePosition, HoleDefinition, parseMapLayout } from '../terrain';
 const HOLE_15_LAYOUT = [
   "RRRRRRRRRRRRRRRRRRRR",
   "RRRRRRRRRRRGGGGGRRRR",
-  "RRRRRRRRRRGGGHGGRRRR",
+  "RRRRRRRRRRGGHGGGRRRR",
   "RRRRRRRRRRggGGggrRRR",
   "RRRRRRRRRRRggggrRRRR",
   "RRRRRRRRRRRFFFFRWWWW",

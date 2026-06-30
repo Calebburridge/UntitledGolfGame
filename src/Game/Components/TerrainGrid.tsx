@@ -67,6 +67,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#d8c59a',
   },
+  FAIRWAY: {
+    backgroundColor: '#cfe3b8',
+    borderWidth: 1,
+    borderColor: '#b4cc95',
+  },
   FRINGE: {
     backgroundColor: '#cfe3b8',
     borderWidth: 1,

@@ -5,6 +5,7 @@ interface TimingMinigameProps {
   onStop: (accuracyModifier: number) => void;
   sweepSpeed: number;
   maxAngleError: number;
+  level: number;
 }
 
 interface RGB { r: number; g: number; b: number; }
@@ -61,7 +62,7 @@ const getColorForPercent = (p: number): string => {
   return lerpColor(parseHex(lower.hex), parseHex(upper.hex), factor);
 };
 
-export const TimingMinigame: React.FC<TimingMinigameProps> = ({ onStop, sweepSpeed, maxAngleError }) => {
+export const TimingMinigame: React.FC<TimingMinigameProps> = ({ onStop, sweepSpeed, maxAngleError, level }) => {
   const [cursorPos, setCursorPos] = useState(0);
   const directionRef = useRef(1);
   const animationRef = useRef<number | null>(null);
@@ -116,7 +117,8 @@ export const TimingMinigame: React.FC<TimingMinigameProps> = ({ onStop, sweepSpe
 
     const distanceFromCenter = Math.abs(cursorPos - 50);
     const errorRatio = distanceFromCenter / 50;
-    const angleError = errorRatio * maxAngleError;
+    const forgivenessFactor = level >= 5 ? 0.55 : level === 4 ? 0.8 : 1;
+    const angleError = errorRatio * maxAngleError * forgivenessFactor;
     const sideSign = cursorPos < 50 ? -1 : 1;
     const finalAngleOffset = angleError * sideSign;
 

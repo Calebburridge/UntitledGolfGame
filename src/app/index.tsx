@@ -21,7 +21,7 @@ const createDefaultSave = (id: number): SaveSlotData => ({
   handicap: 'Reviewing',
   bestStrokes: 0,
   unlocks: DEFAULT_UNLOCKS,
-  cash: 500,
+  cash: 0,
   clubLevels: {},
   completedCourses: [],
 });
@@ -39,7 +39,7 @@ const normalizeSaveSlot = (slot: Partial<SaveSlotData> & { id: number }): SaveSl
     unlocks: normalizedUnlocks,
     completedCourses: slot.completedCourses ?? [],
     clubLevels: slot.clubLevels ?? {},
-    cash: slot.cash ?? 500,
+    cash: slot.cash ?? 0,
     accuracy: slot.accuracy ?? 0,
     handicap: slot.handicap ?? 'Reviewing',
     bestStrokes: slot.bestStrokes ?? 0,
@@ -110,8 +110,19 @@ export default function App() {
     }
   };
 
+  const handlePayout = (amount: number) => {
+    if (activeSaveId === null) return;
+
+    setSaves((prev) =>
+      prev.map((slot) => (slot.id === activeSaveId ? { ...slot, cash: slot.cash + amount } : slot))
+    );
+  };
+
   const handleCourseComplete = (courseName: string, totalStrokes: number, totalPar: number) => {
     if (activeSaveId === null) return;
+
+    const courseDiff = totalStrokes - totalPar;
+    const coursePayout = courseDiff > 0 ? 25 : courseDiff < 0 ? 75 : 50;
 
     setSaves((prev) =>
       prev.map((slot) => {
@@ -126,6 +137,7 @@ export default function App() {
 
         return {
           ...slot,
+          cash: slot.cash + coursePayout,
           completedCourses: completedCourses.includes(courseName) ? completedCourses : [...completedCourses, courseName],
           unlocks: updatedUnlocks,
           bestStrokes: slot.bestStrokes === 0 || totalStrokes < slot.bestStrokes ? totalStrokes : slot.bestStrokes,
@@ -135,7 +147,7 @@ export default function App() {
   };
 
   const handleUpgradeClub = (clubId: string, cost: number) => {
-    if (!activeSaveId) return;
+    if (activeSaveId === null) return;
     setSaves((prevSaves) =>
       prevSaves.map((slot) => {
         if (slot.id !== activeSaveId) return slot;
@@ -204,7 +216,7 @@ export default function App() {
     <View style={styles.container}>
       <GameplayScreen
         activeProfile={activeSave}
-        onPayout={() => {}}
+        onPayout={handlePayout}
         onQuit={() => setScreenState('MAIN_GAME_MENU')}
         onCourseComplete={handleCourseComplete}
         courseName="Shady Sands Municipal Golf"

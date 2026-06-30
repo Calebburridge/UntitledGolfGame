@@ -127,17 +127,17 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
   // CALCULATE SCORE STRINGS AND BALANCE REWARDS UPON COMPLETION
   const scoreStats = useMemo(() => {
     if (!isHoleComplete) return { term: '', reward: 0 };
-    
-    if (strokes === 1) return { term: 'Hole-In-One!', reward: 500 };
-    
+
+    if (strokes === 1) return { term: 'Hole-In-One!', reward: 15 };
+
     const diff = strokes - activeHole.par;
     switch (diff) {
-      case -2: return { term: 'Eagle!', reward: 300 };
-      case -1: return { term: 'Birdie!', reward: 150 };
-      case 0: return { term: 'Par!', reward: 75 };
-      case 1: return { term: 'Bogey', reward: 40 };
-      case 2: return { term: 'Double Bogey', reward: 20 };
-      default: return diff < 0 ? { term: 'Under Par!', reward: 200 } : { term: 'Tragic Score', reward: 10 };
+      case -2: return { term: 'Eagle!', reward: 7 };
+      case -1: return { term: 'Birdie!', reward: 7 };
+      case 0: return { term: 'Par!', reward: 5 };
+      case 1: return { term: 'Bogey', reward: 3 };
+      case 2: return { term: 'Double Bogey', reward: 3 };
+      default: return diff < 0 ? { term: 'Under Par!', reward: 7 } : { term: 'Tragic Score', reward: 3 };
     }
   }, [isHoleComplete, strokes, activeHole.par]);
 
@@ -230,6 +230,7 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
           onStop={handleMinigameStopped} 
           sweepSpeed={currentClub.sweepSpeed}
           maxAngleError={currentClub.maxAngleError}
+          level={currentClub.level}
         />
       )}
 

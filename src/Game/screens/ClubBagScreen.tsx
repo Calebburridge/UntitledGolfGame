@@ -17,7 +17,7 @@ export const ClubBagScreen: React.FC<ClubBagScreenProps> = ({
   const clubsInBag = getAllClubsForProfile(activeSave.clubLevels);
 
   const handleUpgradeClick = (club: Club) => {
-    if (activeSave.cash >= club.upgradeCost) {
+    if (!club.isMaxLevel && activeSave.cash >= club.upgradeCost) {
       onUpgradeClub(club.id, club.upgradeCost);
     }
   };
@@ -32,7 +32,7 @@ export const ClubBagScreen: React.FC<ClubBagScreenProps> = ({
 
       <ScrollView style={styles.listScroll} showsVerticalScrollIndicator={false}>
         {clubsInBag.map((club) => {
-          const canAfford = activeSave.cash >= club.upgradeCost;
+          const canAfford = !club.isMaxLevel && activeSave.cash >= club.upgradeCost;
           
           return (
             <View key={club.id} style={styles.clubCard}>
@@ -43,11 +43,11 @@ export const ClubBagScreen: React.FC<ClubBagScreenProps> = ({
               </View>
               
               <TouchableOpacity
-                style={[styles.upgradeButton, !canAfford && styles.disabledButton]}
+                style={[styles.upgradeButton, (!canAfford || club.isMaxLevel) && styles.disabledButton]}
                 onPress={() => handleUpgradeClick(club)}
               >
-                <Text style={styles.upBtnText}>Upgrade</Text>
-                <Text style={styles.costText}>${club.upgradeCost}</Text>
+                <Text style={styles.upBtnText}>{club.isMaxLevel ? 'Maxed' : 'Upgrade'}</Text>
+                {!club.isMaxLevel && <Text style={styles.costText}>${club.upgradeCost}</Text>}
               </TouchableOpacity>
             </View>
           );
